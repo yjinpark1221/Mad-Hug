@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/dialogs.dart';
 import 'package:flutter_application_1/friend_page.dart';
 import 'package:flutter_application_1/group.dart';
 import 'package:flutter_application_1/kakao_login.dart';
+import 'package:flutter_application_1/popup_add.dart';
 import 'package:flutter_application_1/subject.dart';
 import 'package:flutter_application_1/timer_page.dart';
 import 'package:flutter_application_1/utils.dart';
@@ -44,12 +44,13 @@ class MyAppState extends ChangeNotifier {
   Timer? timer = null;
   final stopwatch = Stopwatch();
   var duration = Duration.zero;
-  Subject currentSubject = Subject('');
+  Subject currentSubject = Subject(-1, '');
   DateTime? currentStart;
-  List<Subject> subjects = getSubjectListFromServer();
-  List<Group> groups = getGroupListFromServer();
-  Group friends = Group(0, '친구', getFriendListFromServer());
+  List<Subject> subjects = [];
+  List<Group> groups = [];
+  Group friends = Group(0, '친구', []);
   Group? currentGroup = null;
+  final viewModel = MainViewModel(KakaoLogin());
 
   void setGroup(int index) {
     if (index == 0) {
@@ -60,6 +61,21 @@ class MyAppState extends ChangeNotifier {
       currentGroup = null;
     }
     notifyListeners();
+  }
+
+  Future init() async {
+    await viewModel.login();
+    print('?');
+    subjects = await getSubjectsList();
+    groups = await getGroupsList();
+    friends = Group(0, '친구', await getFriendsList());
+  }
+
+  Group getGroupOfIndex(int index) {
+    if (index == 0) {
+      return friends;
+    }
+    return groups[index - 1];
   }
 
   Group? getGroup() {
@@ -85,6 +101,7 @@ class MyAppState extends ChangeNotifier {
     print('start');
     stopwatch.start();
     currentStart = DateTime.now();
+    sendStart(currentStart!, currentSubject);
     timer = Timer.periodic(Duration(milliseconds: 1000), (timer) {
       duration = stopwatch.elapsed;
       notifyListeners();
@@ -93,14 +110,14 @@ class MyAppState extends ChangeNotifier {
 
   void pause() {
     timer?.cancel();
-    sendRecordToServer(currentStart!, DateTime.now(), currentSubject);
+    sendEnd(currentStart!, DateTime.now(), currentSubject);
     stopwatch.stop();
   }
 }
 
-void updateFriendsState (appState) {
-  appState.friends.members = getFriendListFromServer();
-  appState.groups = getGroupListFromServer();
+void updateFriendsState(appState) {
+  appState.friends.members = getFriendsList();
+  appState.groups = getGroupsList();
 }
 
 class MyHomePage extends StatefulWidget {
@@ -112,102 +129,59 @@ enum AddType { enterGroup, makeGroup, addFriend }
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 1;
-  final viewModel = MainViewModel(KakaoLogin());
   @override
   Widget build(BuildContext context) {
     MyAppState appState = context.watch<MyAppState>();
-    return GestureDetector(
-      onTap: () {
-        print('tap');
-        FocusManager.instance.primaryFocus?.unfocus();
-      },
-      child: Scaffold(
-        appBar: AppBar(
-            title: Text('몰품타'),
-            actions: _selectedIndex == 2
-                ? [
-                    PopupMenuButton<AddType>(
-                      onSelected: (AddType result) {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            if (result == AddType.enterGroup) {
-                              return InsertDialogUI(addNameArr: enterGroup, title: '그룹 가입', hint: '가입할 그룹 아이디를 입력하세요.');
-                            }
-                            else if (result == AddType.makeGroup) {
-                              return InsertDialogUI(addNameArr: makeGroup, title: '그룹 생성', hint: '그룹 이름을 입력하세요.');
-                            }
-                            else {
-                              return InsertDialogUI(addNameArr: addFriend, title: '친구 추가', hint: '친구 아이디를 입력하세요.');
-                            }
+    return appState.viewModel.getUser() == null
+        ? LoginPage()
+        : GestureDetector(
+            onTap: () {
+              print('tap');
+              FocusManager.instance.primaryFocus?.unfocus();
+            },
+            child: Scaffold(
+              appBar: AppBar(
+                  title: Text('몰품타'),
+                  actions: _selectedIndex == 2 ? [PopupAdd()] : null),
+              bottomNavigationBar: BottomNavigationBar(
+                currentIndex: _selectedIndex,
+                onTap: (index) {
+                  print('index test : $index');
+                  setState(
+                    () {
+                      _selectedIndex = index;
+                    },
+                  );
+                },
+                items: [
+                  BottomNavigationBarItem(
+                      icon: Icon(Icons.bar_chart), label: 'Statistics'),
+                  BottomNavigationBarItem(
+                      icon: Icon(Icons.home_outlined), label: 'Home'),
+                  BottomNavigationBarItem(
+                      icon: Icon(Icons.people), label: 'Friends'),
+                ],
+                showUnselectedLabels: false,
+                type: BottomNavigationBarType.fixed,
+              ),
+              //List item index로 Body 변경
+              body: Center(
+                child: _widgetOptions.elementAt(_selectedIndex),
+              ),
+              floatingActionButton: _selectedIndex == 2
+                  ? FloatingActionButton(
+                      onPressed: () {
+                        setState(
+                          () {
+                            updateFriendsState(appState);
                           },
                         );
                       },
-                      itemBuilder: (BuildContext buildContext) {
-                        return [
-                          PopupMenuItem(
-                            value: AddType.enterGroup,
-                            child: Text('그룹 가입'),
-                          ),
-                          PopupMenuItem(
-                            value: AddType.makeGroup,
-                            child: Text('그룹 생성'),
-                          ),
-                          PopupMenuItem(
-                            value: AddType.addFriend,
-                            child: Text('친구 추가'),
-                          ),
-                        ];
-                      },
+                      child: Icon(Icons.refresh),
                     )
-                  ]
-                : null),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: (index) {
-            print('index test : $index');
-            setState(
-              () {
-                _selectedIndex = index;
-              },
-            );
-          },
-          items: [
-            BottomNavigationBarItem(
-                icon: Icon(Icons.bar_chart), label: 'Statistics'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Friends'),
-          ],
-          showUnselectedLabels: false,
-          type: BottomNavigationBarType.fixed,
-        ),
-        //List item index로 Body 변경
-        body: viewModel.getUser() != null
-            ? Center(
-                child: _widgetOptions.elementAt(_selectedIndex),
-              )
-            : Center(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await viewModel.login();
-                    setState(() {});
-                  },
-                  child: const Text('카카오'),
-                ),
-              ),
-        floatingActionButton: _selectedIndex == 2
-            ? FloatingActionButton(
-                onPressed: () {
-                  setState(() {
-                    updateFriendsState(appState);
-                  });
-                },
-                child: Icon(Icons.refresh),
-              )
-            : null,
-      ),
-    );
+                  : null,
+            ),
+          );
   }
 
   List _widgetOptions = [
@@ -215,4 +189,29 @@ class _MyHomePageState extends State<MyHomePage> {
     TimerPage(),
     FriendPage(),
   ];
+}
+
+class LoginPage extends StatefulWidget {
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  bool loading = false;
+  @override
+  Widget build(BuildContext context) {
+    MyAppState appState = context.watch<MyAppState>();
+    return Center(
+      child: loading ? CircularProgressIndicator() : ElevatedButton(
+        onPressed: () async {
+          setState(() {
+            loading = true;
+          });
+          await appState.init();
+        },
+        child: const Text('카카오'),
+      ),
+    );
+  }
 }

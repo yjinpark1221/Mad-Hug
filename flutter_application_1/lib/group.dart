@@ -10,6 +10,14 @@ class Group {
   String getName() {
     return _name;
   }
+
+  factory Group.fromJson(Map<String, dynamic> json) {
+    return Group(
+      json['groupId'],
+      json['groupName'],
+      json['members'].map((dynamic item) => Friend.fromJson(item)).toList(),
+    );
+  }
 }
 
 class Friend {
@@ -19,5 +27,12 @@ class Friend {
   bool isStudying;
   String getName() {
     return name;
+  }
+  factory Friend.fromJson(Map<String, dynamic> json) {
+    return Friend(
+      json['userId'],
+      json['userName'],
+      json['studying'],
+    );
   }
 }

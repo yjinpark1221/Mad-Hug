@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/main.dart';
 import 'package:flutter_application_1/subject_simple_list.dart';
 import 'package:flutter_application_1/time_widget.dart';
-import 'package:flutter_application_1/utils.dart';
 import 'package:provider/provider.dart';
 
 class TimerPage extends StatefulWidget {
@@ -76,7 +75,7 @@ class _TimerPageState extends State<TimerPage> {
             if (details.delta.dy > 0) {
               print('Swipe down');
               if (listOpen == true) {
-                test();
+                // test();
                 setState(() {
                   listOpen = false;
                 });

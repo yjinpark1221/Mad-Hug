@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/subject.dart';
-import 'package:flutter_application_1/utils.dart';
 import 'package:provider/provider.dart';
 
 import 'main.dart';
@@ -33,7 +32,7 @@ class _SubjectSimpleList extends State<SubjectSimpleList> {
   void addItem(String value) {
     if (value == '') return;
     setState(() {
-      appState?.subjects.add(Subject(value));
+      appState?.subjects.add(Subject(0, value));
       isEditing = false;
       _textEditingController.clear();
     });

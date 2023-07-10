@@ -1,61 +1,158 @@
+import 'dart:convert';
+
 import 'package:flutter_application_1/group.dart';
+import 'package:flutter_application_1/kakao_login.dart';
 import 'package:flutter_application_1/subject.dart';
 import 'package:http/http.dart' as http;
 
-List<Subject> getSubjectListFromServer() {
-  // TODO : 서버로부터 정보 받아서 List로 만들기
-  print('[SERVER->] getting subject list');
-  return [Subject('국어'), Subject('수학')];
-}
+final url = 'http://172.10.5.102:443';
+
 
 Future test () async {
-  final url = Uri.parse('http://172.10.5.102:80');
-  final response = await http.post(url, body: {
+  final response = await http.post(Uri.parse(url), body: {
     'key': 'value',
   });
   print('Response status: ${response.statusCode}');
   print('Response body: ${response.body}');
-
-}
-void sendRecordToServer(DateTime start, DateTime end, Subject subject) {
-  // TODO : 사용자 정보랑 같이 보내기
-  print('[SERVER<-] $start ~ $end ( ${subject.id} )');
 }
 
-void sendSubjectNameToServer(String name, int id) {
-  // TODO : id에 해당하는 subject를 바꿨음을 알리기
-  print('[SERVER<-] 변경된 과목 $name ($id) ');
+Future<List<Subject>> getSubjectsList() async {
+  if (user == null) throw Exception('no user info');
+  print('[REQUEST] get subject');
+  var response = await http.get(Uri.parse('$url/subject?uid=${user?.id}, ${user?.kakaoAccount?.profile?.nickname}'));
+
+  if (response.statusCode == 200) {
+    print('[RESPONSE: get subject]');
+    print(json.decode(response.body));
+    List<dynamic> body = json.decode(response.body);
+    List<Subject> allSubject =
+        body.map((dynamic item) => Subject.fromJson(item)).toList();
+
+    return allSubject;
+  } else {
+    print('Response status: ${response.statusCode}');
+    throw Exception('불러오는데 실패했습니다');
+  }
 }
 
-int subjectid = 10;
+Future<List<Group>> getGroupsList() async {
+  if (user == null) throw Exception('no user info');
 
-int sendNewSubjectToServer(String name, int id) {
-  // TODO : id에 해당하는 subject를 생겼음을 알리기
+  print('[REQUEST] get group');
+  var response = await http.get(Uri.parse('$url/group?uid=${user?.id}'));
 
-  print('[SERVER<-] 추가된 과목 $name ($id) ');
-  return subjectid++;
+  if (response.statusCode == 200) {
+    print('[RESPONSE: get group]');
+    print(json.decode(response.body));
+    List<dynamic> body = json.decode(response.body);
+    List<Group> allGroup =
+        body.map((dynamic item) => Group.fromJson(item)).toList();
+
+    return allGroup;
+  } else {
+    print('Response status: ${response.statusCode}');
+    throw Exception('불러오는데 실패했습니다');
+  }
 }
 
-List<Group> getGroupListFromServer() {
-  return [Group(1, '그룹1', [Friend(55, '연진', false)]), Group(2, '그룹2', [Friend(55, '연진', false), Friend(56, '정민', true)]), Group(3, '그룹3', []), Group(4, '그룹4', []), Group(6, '그룹5', []), Group(6, '그룹6', [])];
+Future<List<Friend>> getFriendsList() async {
+  if (user == null) throw Exception('no user info');
+
+  print('[REQUEST] get friend');
+  var response = await http.get(Uri.parse('$url/friend?uid=${user?.id}'));
+
+  if (response.statusCode == 200) {
+    print('[RESPONSE: get group]');
+    print(json.decode(response.body));
+    List<dynamic> body = json.decode(response.body);
+    List<Friend> allFriend =
+        body.map((dynamic item) => Friend.fromJson(item)).toList();
+
+    return allFriend;
+  } else {
+    print('Response status: ${response.statusCode}');
+    throw Exception('불러오는데 실패했습니다');
+  }
 }
 
-List<Friend> getFriendListFromServer() {
-  return [Friend(33, '친구1', true), Friend(34, '친구2', true), Friend(35, '친구3', false)];
+Future sendEditedSubject(int subjectId, String name) async {
+  print('[REQUEST] post 과목명 변경');
+  final response = await http.post(Uri.parse('$url/edit/subject'), body: {
+    'userId': '${user!.id}',
+    'subjectId': '$subjectId',
+    'subjectName': '$name',
+  });
+  print('[RESPONSE] post 과목명 변경');
+  print('Response status: ${response.statusCode}');
+  print('Response body: ${response.body}');
 }
 
-void updateFriendsState() {
-
+Future sendFriendRequest(int friendId) async {
+  print('[REQUEST] post 친구 추가');
+  final response = await http.post(Uri.parse('$url/add/friend'), body: {
+    'userId1': '${user!.id}',
+    'userId2': '$friendId',
+  });
+  print('[RESPONSE] post 친구 추가');
+  print('Response status: ${response.statusCode}');
+  print('Response body: ${response.body}');
 }
 
-void sendGroupRegisteration(int groupId) {
-  print('[SERVER<-] 그룹 가입');
+Future sendNewSubject(String name, int id) async {
+  print('[REQUEST] post 과목 추가');
+  final response = await http.post(Uri.parse('$url/add/subject'), body: {
+    'userId': '${user!.id}',
+    'subjectId': '$id',
+    'subjectName': name,
+  });
+  print('[RESPONSE] post 과목 추가');
+  print('Response status: ${response.statusCode}');
+  print('Response body: ${response.body}');
 }
 
-void sendNewGroup(String groupName) {
-  print('[SERVER<-] 그룹 생성');
+Future sendStart(DateTime start, Subject subject) async {
+  print('[REQUEST] post 공부 추가');
+  final response = await http.post(Uri.parse('$url/record/start'), body: {
+    'userId': '${user!.id}',
+    'subjectId': '${subject.id}',
+    'startTime': '$start',
+  });
+  print('[RESPONSE] post 공부 추가');
+  print('Response status: ${response.statusCode}');
+  print('Response body: ${response.body}');
 }
 
-void sendFriendRequest(int friendId) {
-  print('[SERVER<-] 친구 추가');
+Future sendEnd(DateTime start, DateTime end, Subject subject) async {
+  print('[REQUEST] post 공부 추가');
+  final response = await http.post(Uri.parse('$url/record/end'), body: {
+    'userId': '${user!.id}',
+    'subjectId': '${subject.id}',
+    'startTime': '$start',
+    'endTime': '$end',
+  });
+  print('[RESPONSE] post 공부 추가');
+  print('Response status: ${response.statusCode}');
+  print('Response body: ${response.body}');
+}
+
+Future sendGroupRequest(int groupId) async {
+  print('[REQUEST] post 그룹 가입');
+  final response = await http.post(Uri.parse('$url/enter/group'), body: {
+    'userId': '${user!.id}',
+    'groupId': '${groupId}',
+  });
+  print('[RESPONSE] post 그룹 가입');
+  print('Response status: ${response.statusCode}');
+  print('Response body: ${response.body}');
+}
+
+Future sendNewGroup(String name) async {
+  print('[REQUEST] post 그룹 추가');
+  final response = await http.post(Uri.parse('$url/add/group'), body: {
+    'userId': '${user!.id}',
+    'groupName': '${name}',
+  });
+  print('[RESPONSE] post 그룹 추가');
+  print('Response status: ${response.statusCode}');
+  print('Response body: ${response.body}');
 }

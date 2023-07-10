@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/group.dart';
 import 'package:flutter_application_1/subject.dart';
 import 'package:provider/provider.dart';
 
@@ -33,7 +32,8 @@ class _GroupList extends State<GroupList> {
   void addItem(String value) {
     if (value == '') return;
     setState(() {
-      appState?.subjects.add(Subject(value));
+      appState?.subjects.add(Subject(-1, value));
+
       isEditing = false;
       _textEditingController.clear();
     });
@@ -65,30 +65,25 @@ class _GroupList extends State<GroupList> {
     return Container(
       height: 70,
       child: ListView.builder(
-        itemCount: appState!.groups.length + 2,
+        itemCount: appState!.groups.length + 1,
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
           if (index == 0) {
             return GroupTile(
               appState: appState!,
-              child: Text('친구'),
               index: index,
+              child: Text('친구'),
             );
           } else if (index <= appState!.groups.length) {
             return GroupTile(
               appState: appState!,
+              index: index,
               child: Text(
                 appState!.groups[index - 1].getName(),
               ),
-              index: index,
-            );
-          } else {
-            return GroupTile(
-              appState: appState!,
-              child: Icon(Icons.add),
-              index: -1,
             );
           }
+          return null;
         },
       ),
     );
@@ -118,14 +113,14 @@ class GroupTile extends StatelessWidget {
           height: 60,
           child: ElevatedButton(
             child: child,
-            onPressed: () {
-              if (index == -1) {
-                // TODO : 그룹 추가
-              }
-              else {
-                appState.setGroup(index);
-              }
+            style: ElevatedButton.styleFrom(
+              disabledForegroundColor: Colors.green,
+              disabledBackgroundColor: Colors.grey[300],
+            ),
+            onPressed: appState.currentGroup == appState.getGroupOfIndex(index) ? null : () {
+              appState.setGroup(index);
             },
+            
           ),
         ),
       ),

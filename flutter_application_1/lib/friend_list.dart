@@ -25,39 +25,11 @@ class _FriendList extends State<FriendList> {
     appState = null;
   }
 
-  void addItem(String value) {
-    if (value == '') return;
-    setState(() {
-      appState?.subjects.add(Subject(value));
-      isEditing = false;
-      _textEditingController.clear();
-    });
-  }
-
-  void editItem(String value) {
-    setState(() {
-      editingSubject?.setName(value);
-    });
-  }
-
-  void editDone() {
-    setState(() {
-      editingSubject?.editDone();
-      editingSubject = null;
-    });
-  }
-
   Group getGroup(MyAppState appState) {
     if (appState.getGroup() == null) {
       appState.setGroup(0);
     }
     return appState.currentGroup!;
-  }
-
-  void startEditing() {
-    setState(() {
-      isEditing = true;
-    });
   }
 
   @override

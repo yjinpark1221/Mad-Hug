@@ -62,8 +62,7 @@ class InsertDialogUI extends StatelessWidget {
           onPressed: () => Navigator.pop(context, 'Cancel'),
           child: Text('Cancel'),
           style: ElevatedButton.styleFrom(
-            primary: Colors.green,
-            onPrimary: Colors.white,
+            backgroundColor: Colors.red,
           ),
         ),
         ElevatedButton(
@@ -73,8 +72,7 @@ class InsertDialogUI extends StatelessWidget {
           },
           child: Text('OK'),
           style: ElevatedButton.styleFrom(
-            primary: Colors.green,
-            onPrimary: Colors.white,
+            backgroundColor: Colors.green,
           ),
         ),
       ],
