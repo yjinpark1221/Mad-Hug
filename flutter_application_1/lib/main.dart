@@ -1,18 +1,27 @@
 import 'dart:async';
 
-import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/dialogs.dart';
+import 'package:flutter_application_1/friend_page.dart';
+import 'package:flutter_application_1/group.dart';
+import 'package:flutter_application_1/kakao_login.dart';
+import 'package:flutter_application_1/subject.dart';
+import 'package:flutter_application_1/timer_page.dart';
+import 'package:flutter_application_1/utils.dart';
 import 'package:provider/provider.dart';
-
-import 'package:intl/intl.dart';
+import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
+import 'main_view_model.dart';
 
 void main() {
+  KakaoSdk.init(
+    nativeAppKey: '097e7cd9a62149718112d7dc7ab99d3e',
+    javaScriptAppKey: '00488ce796cfafa104b7f20fc289bf01',
+  );
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -35,11 +44,48 @@ class MyAppState extends ChangeNotifier {
   Timer? timer = null;
   final stopwatch = Stopwatch();
   var duration = Duration.zero;
+  Subject currentSubject = Subject('');
+  DateTime? currentStart;
+  List<Subject> subjects = getSubjectListFromServer();
+  List<Group> groups = getGroupListFromServer();
+  Group friends = Group(0, '친구', getFriendListFromServer());
+  Group? currentGroup = null;
+
+  void setGroup(int index) {
+    if (index == 0) {
+      currentGroup = friends;
+    } else if (index > 0) {
+      currentGroup = groups[index - 1];
+    } else {
+      currentGroup = null;
+    }
+    notifyListeners();
+  }
+
+  Group? getGroup() {
+    if (currentGroup == null) {
+      currentGroup = friends;
+    }
+    return currentGroup;
+  }
+
+  void setSubject(Subject subject) {
+    if (stopwatch.isRunning && currentSubject == subject) {
+      return;
+    }
+    if (stopwatch.isRunning) {
+      pause();
+    }
+    start();
+    currentSubject = subject;
+    notifyListeners();
+  }
 
   void start() {
     print('start');
     stopwatch.start();
-    timer = Timer.periodic(Duration(milliseconds: 100), (timer) {
+    currentStart = DateTime.now();
+    timer = Timer.periodic(Duration(milliseconds: 1000), (timer) {
       duration = stopwatch.elapsed;
       notifyListeners();
     });
@@ -47,8 +93,14 @@ class MyAppState extends ChangeNotifier {
 
   void pause() {
     timer?.cancel();
+    sendRecordToServer(currentStart!, DateTime.now(), currentSubject);
     stopwatch.stop();
   }
+}
+
+void updateFriendsState (appState) {
+  appState.friends.members = getFriendListFromServer();
+  appState.groups = getGroupListFromServer();
 }
 
 class MyHomePage extends StatefulWidget {
@@ -56,36 +108,104 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+enum AddType { enterGroup, makeGroup, addFriend }
+
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 1;
-
+  final viewModel = MainViewModel(KakaoLogin());
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('몰품타'),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          print('index test : $index');
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        items: [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart), label: 'Statistics'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Friends'),
-        ],
-        showUnselectedLabels: false,
-        type: BottomNavigationBarType.fixed,
-      ),
-      //List item index로 Body 변경
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
+    MyAppState appState = context.watch<MyAppState>();
+    return GestureDetector(
+      onTap: () {
+        print('tap');
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+            title: Text('몰품타'),
+            actions: _selectedIndex == 2
+                ? [
+                    PopupMenuButton<AddType>(
+                      onSelected: (AddType result) {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            if (result == AddType.enterGroup) {
+                              return InsertDialogUI(addNameArr: enterGroup, title: '그룹 가입', hint: '가입할 그룹 아이디를 입력하세요.');
+                            }
+                            else if (result == AddType.makeGroup) {
+                              return InsertDialogUI(addNameArr: makeGroup, title: '그룹 생성', hint: '그룹 이름을 입력하세요.');
+                            }
+                            else {
+                              return InsertDialogUI(addNameArr: addFriend, title: '친구 추가', hint: '친구 아이디를 입력하세요.');
+                            }
+                          },
+                        );
+                      },
+                      itemBuilder: (BuildContext buildContext) {
+                        return [
+                          PopupMenuItem(
+                            value: AddType.enterGroup,
+                            child: Text('그룹 가입'),
+                          ),
+                          PopupMenuItem(
+                            value: AddType.makeGroup,
+                            child: Text('그룹 생성'),
+                          ),
+                          PopupMenuItem(
+                            value: AddType.addFriend,
+                            child: Text('친구 추가'),
+                          ),
+                        ];
+                      },
+                    )
+                  ]
+                : null),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: (index) {
+            print('index test : $index');
+            setState(
+              () {
+                _selectedIndex = index;
+              },
+            );
+          },
+          items: [
+            BottomNavigationBarItem(
+                icon: Icon(Icons.bar_chart), label: 'Statistics'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.home_outlined), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Friends'),
+          ],
+          showUnselectedLabels: false,
+          type: BottomNavigationBarType.fixed,
+        ),
+        //List item index로 Body 변경
+        body: viewModel.getUser() != null
+            ? Center(
+                child: _widgetOptions.elementAt(_selectedIndex),
+              )
+            : Center(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await viewModel.login();
+                    setState(() {});
+                  },
+                  child: const Text('카카오'),
+                ),
+              ),
+        floatingActionButton: _selectedIndex == 2
+            ? FloatingActionButton(
+                onPressed: () {
+                  setState(() {
+                    updateFriendsState(appState);
+                  });
+                },
+                child: Icon(Icons.refresh),
+              )
+            : null,
       ),
     );
   }
@@ -93,235 +213,6 @@ class _MyHomePageState extends State<MyHomePage> {
   List _widgetOptions = [
     Placeholder(),
     TimerPage(),
-    Placeholder(),
+    FriendPage(),
   ];
-}
-
-class TimerPage extends StatefulWidget {
-  @override
-  State<TimerPage> createState() => _TimerPageState();
-}
-
-class _TimerPageState extends State<TimerPage> {
-  var currentSubjectIdx = -1;
-  var icon = null;
-  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
-  List<String> _items = [];
-  bool listOpen = false;
-
-  @override
-  void initState() {
-    super.initState();
-    setState(() {
-      icon = Icon(Icons.play_arrow);
-    });
-  }
-
-  void openList() {}
-
-  void closeList() {}
-
-  @override
-  Widget build(BuildContext context) {
-    var size = MediaQuery.of(context).size;
-
-    var appState = context.watch<MyAppState>();
-    if (appState.isOn) {
-      icon = Icon(Icons.pause);
-    } else {
-      icon = Icon(Icons.play_arrow);
-    }
-
-    void toggle() {
-      if (appState.isOn) {
-        appState.pause();
-        appState.isOn = false;
-        setState(() {
-          icon = Icon(Icons.pause);
-        });
-      } else {
-        appState.isOn = true;
-        appState.start();
-        setState(() {
-          icon = Icon(Icons.play_arrow);
-        });
-      }
-    }
-
-    final theme = Theme.of(context);
-    final style = theme.textTheme.headlineMedium!.copyWith(
-      color: theme.colorScheme.onSecondary,
-    );
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Spacer(),
-        // DigitalClock(),
-        IconButton(
-            icon: icon,
-            iconSize: 100,
-            onPressed: () {
-              toggle();
-            }),
-        TimeWidget(timeCnt: appState.duration),
-        Spacer(),
-        GestureDetector(
-          onVerticalDragUpdate: (DragUpdateDetails details) {
-            if (details.delta.dy > 0) {
-              print('Swipe down');
-              if (listOpen == true) {
-                setState(() {
-                  listOpen = false;
-                });
-                closeList();
-              }
-            } else if (details.delta.dy < -0) {
-              print('Swipe up');
-              if (listOpen == false) {
-                setState(() {
-                  listOpen = true;
-                  print('openlist');
-                });
-                openList();
-              }
-            }
-          },
-          child: Container(
-            // width: 200,
-            height: 80,
-            color: Theme.of(context).colorScheme.secondary,
-            child: Center(
-              child: Text(
-                'Swipe me',
-                style: style,
-              ),
-            ),
-          ),
-        ),
-        AnimatedContainer(
-          // 속도
-          duration: Duration(seconds: 1),
-          // animation 형태
-          curve: Curves.fastOutSlowIn,
-          width: double.infinity,
-          // 컨테이너의 가로 사이즈
-          height: listOpen ? 350 : 0,
-          color: Colors.blue,
-        )
-      ],
-    );
-  }
-}
-
-class DigitalClock extends StatefulWidget {
-  @override
-  _DigitalClockState createState() => _DigitalClockState();
-}
-
-class _DigitalClockState extends State<DigitalClock> {
-  String _currentTime = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _updateTime();
-  }
-
-  void _updateTime() {
-    setState(() {
-      _currentTime = DateFormat('HH:mm:ss').format(DateTime.now());
-    });
-    Future.delayed(Duration(seconds: 1), _updateTime);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            _currentTime,
-            style: TextStyle(
-              fontSize: 60,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            DateFormat('EEE, d MMM').format(DateTime.now()),
-            style: TextStyle(fontSize: 20),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class TimeWidget extends StatelessWidget {
-  const TimeWidget({
-    super.key,
-    required this.timeCnt,
-  });
-
-  final Duration timeCnt;
-
-  format(Duration d) => d.toString().split('.').first.padLeft(8, "0");
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(format(timeCnt),
-        style: TextStyle(
-          fontSize: 60,
-          fontWeight: FontWeight.bold,
-        ));
-  }
-}
-
-class ElevatedCard extends StatelessWidget {
-  const ElevatedCard({super.key, required this.content});
-
-  final String content;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final style = theme.textTheme.labelSmall!.copyWith(
-      color: theme.colorScheme.onPrimaryContainer,
-    );
-    return Center(
-      child: Card(
-        child: SizedBox(
-          width: 100,
-          height: 50,
-          child: Center(child: Text(content, style: style)),
-        ),
-      ),
-    );
-  }
-}
-
-class SubjectList extends StatelessWidget {
-  const SubjectList({
-    super.key,
-    required GlobalKey<AnimatedListState> listKey,
-    required List<String> items,
-  })  : _listKey = listKey,
-        _items = items;
-
-  final GlobalKey<AnimatedListState> _listKey;
-  final List<String> _items;
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedList(
-        key: _listKey,
-        itemBuilder: (context, index, animation) {
-          return FadeTransition(
-            opacity: animation,
-            child: ListTile(
-              title: Text(_items[index]),
-            ),
-          );
-        });
-  }
 }
