@@ -14,7 +14,7 @@ class _SubjectSimpleList extends State<SubjectSimpleList> {
   bool isEditing = false;
   FocusNode _textFocusNode = FocusNode(); // 포커스 노드 추가
   Subject? editingSubject = null;
-  MyAppState? appState = null;
+  TimerState? timerState = null;
 
   @override
   void initState() {
@@ -26,13 +26,15 @@ class _SubjectSimpleList extends State<SubjectSimpleList> {
     super.dispose();
     _textEditingController.dispose();
     _textFocusNode.dispose(); // 포커스 노드 해제
-    appState = null;
+    timerState = null;
   }
 
   void addItem(String value) {
     if (value == '') return;
+    if (timerState == null) return;
+
     setState(() {
-      appState?.subjects.add(Subject(0, value));
+      timerState!.subjects.add(Subject(0, value));
       isEditing = false;
       _textEditingController.clear();
     });
@@ -59,17 +61,17 @@ class _SubjectSimpleList extends State<SubjectSimpleList> {
 
   @override
   Widget build(BuildContext context) {
-    appState = context.watch<MyAppState>();
+    timerState = context.watch<TimerState>();
     final tileHeight = 55.0;
     final textFieldHeight = 45.0;
     final contentPadding =
         EdgeInsets.symmetric(vertical: (tileHeight - textFieldHeight) / 2);
 
     return ListView.builder(
-      itemCount: appState!.subjects.length + 1,
+      itemCount: timerState!.subjects.length + 1,
       itemBuilder: (context, index) {
         // 새 과목
-        if (index == appState!.subjects.length) {
+        if (index == timerState!.subjects.length) {
           if (editingSubject == null) {
             // 과목 편집 안하고 있으면 추가란 보이게
             return Container(
@@ -119,7 +121,7 @@ class _SubjectSimpleList extends State<SubjectSimpleList> {
             // 일반 과목
             child: ListTile(
               leading: Icon(Icons.play_arrow),
-              title: appState!.subjects[index].isEditing()
+              title: timerState!.subjects[index].isEditing()
                   // 편집중인 과목
                   ? TextFormField(
                       controller: _textEditingController,
@@ -135,19 +137,19 @@ class _SubjectSimpleList extends State<SubjectSimpleList> {
                       focusNode: _textFocusNode, // 포커스 노드 연결
                     )
                   // 저장된 과목
-                  : Text(appState!.subjects[index].getName()),
+                  : Text(timerState!.subjects[index].getName()),
               onTap: () {
                 setState(() {
-                  appState!.setSubject(appState!.subjects[index]);
-                  print(appState!.currentSubject.getName());
+                  timerState!.setSubject(timerState!.subjects[index]);
+                  print(timerState!.currentSubject.getName());
                 });
               },
               trailing: IconButton(
                 icon: Icon(Icons.edit),
                 onPressed: () {
-                  appState!.subjects[index].edit();
+                  timerState!.subjects[index].edit();
                   setState(() {
-                    editingSubject = appState!.subjects[index];
+                    editingSubject = timerState!.subjects[index];
                   });
                 },
               ),

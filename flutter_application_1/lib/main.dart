@@ -24,22 +24,34 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => MyAppState(),
-      child: MaterialApp(
-        title: 'Namer App',
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        ),
-        home: MyHomePage(),
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: MultiProvider(
+        // MultiProvider를 통해 변화에 대해 구독
+        providers: [
+          ChangeNotifierProvider(create: (BuildContext context) => UserState()),
+          ChangeNotifierProvider(
+              create: (BuildContext context) => TimerState()),
+          ChangeNotifierProvider(
+              create: (BuildContext context) => FriendState()),
+        ],
+        child: MyHomePage(),
       ),
     );
   }
 }
 
-class MyAppState extends ChangeNotifier {
-  int timeCnt = 0;
+class UserState extends ChangeNotifier {
+  final viewModel = MainViewModel(KakaoLogin());
+  Future init() async {
+    await viewModel.login();
+  }
+}
+
+class TimerState extends ChangeNotifier {
   bool isOn = false;
   Timer? timer = null;
   final stopwatch = Stopwatch();
@@ -47,42 +59,11 @@ class MyAppState extends ChangeNotifier {
   Subject currentSubject = Subject(-1, '');
   DateTime? currentStart;
   List<Subject> subjects = [];
-  List<Group> groups = [];
-  Group friends = Group(0, '친구', []);
-  Group? currentGroup = null;
-  final viewModel = MainViewModel(KakaoLogin());
-
-  void setGroup(int index) {
-    if (index == 0) {
-      currentGroup = friends;
-    } else if (index > 0) {
-      currentGroup = groups[index - 1];
-    } else {
-      currentGroup = null;
-    }
-    notifyListeners();
-  }
 
   Future init() async {
-    await viewModel.login();
     print('?');
     subjects = await getSubjectsList();
-    groups = await getGroupsList();
-    friends = Group(0, '친구', await getFriendsList());
-  }
-
-  Group getGroupOfIndex(int index) {
-    if (index == 0) {
-      return friends;
-    }
-    return groups[index - 1];
-  }
-
-  Group? getGroup() {
-    if (currentGroup == null) {
-      currentGroup = friends;
-    }
-    return currentGroup;
+    notifyListeners();
   }
 
   void setSubject(Subject subject) {
@@ -115,9 +96,41 @@ class MyAppState extends ChangeNotifier {
   }
 }
 
-void updateFriendsState(appState) {
-  appState.friends.members = getFriendsList();
-  appState.groups = getGroupsList();
+class FriendState extends ChangeNotifier {
+  List<Group> groups = [];
+  Group friends = Group(0, '친구', []);
+  Group? currentGroup = null;
+
+  void setGroup(int index) {
+    if (index == 0) {
+      currentGroup = friends;
+    } else if (index > 0) {
+      currentGroup = groups[index - 1];
+    } else {
+      currentGroup = null;
+    }
+    notifyListeners();
+  }
+
+  Future init() async {
+    groups = await getGroupsList();
+    friends = Group(0, '친구', await getFriendsList());
+    notifyListeners();
+  }
+
+  Group getGroupOfIndex(int index) {
+    if (index == 0) {
+      return friends;
+    }
+    return groups[index - 1];
+  }
+
+  Group? getGroup() {
+    if (currentGroup == null) {
+      currentGroup = friends;
+    }
+    return currentGroup;
+  }
 }
 
 class MyHomePage extends StatefulWidget {
@@ -131,8 +144,10 @@ class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 1;
   @override
   Widget build(BuildContext context) {
-    MyAppState appState = context.watch<MyAppState>();
-    return appState.viewModel.getUser() == null
+    UserState userState = context.watch<UserState>();
+    TimerState timerState = context.watch<TimerState>();
+    FriendState friendState = context.watch<FriendState>();
+    return userState.viewModel.getUser() == null
         ? LoginPage()
         : GestureDetector(
             onTap: () {
@@ -171,11 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
               floatingActionButton: _selectedIndex == 2
                   ? FloatingActionButton(
                       onPressed: () {
-                        setState(
-                          () {
-                            updateFriendsState(appState);
-                          },
-                        );
+                        friendState.init();
                       },
                       child: Icon(Icons.refresh),
                     )
@@ -192,7 +203,6 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class LoginPage extends StatefulWidget {
-
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
@@ -201,17 +211,23 @@ class _LoginPageState extends State<LoginPage> {
   bool loading = false;
   @override
   Widget build(BuildContext context) {
-    MyAppState appState = context.watch<MyAppState>();
+    UserState userState = context.watch<UserState>();
+    TimerState timerState = context.watch<TimerState>();
+    FriendState friendState = context.watch<FriendState>();
     return Center(
-      child: loading ? CircularProgressIndicator() : ElevatedButton(
-        onPressed: () async {
-          setState(() {
-            loading = true;
-          });
-          await appState.init();
-        },
-        child: const Text('카카오'),
-      ),
+      child: loading
+          ? CircularProgressIndicator()
+          : ElevatedButton(
+              onPressed: () async {
+                setState(() {
+                  loading = true;
+                });
+                await userState.init();
+                await timerState.init();
+                await friendState.init();
+              },
+              child: const Text('카카오'),
+            ),
     );
   }
 }

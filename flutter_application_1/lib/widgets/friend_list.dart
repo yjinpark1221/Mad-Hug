@@ -15,35 +15,33 @@ class _FriendList extends State<FriendList> {
   bool isEditing = false;
   FocusNode _textFocusNode = FocusNode(); // 포커스 노드 추가
   Subject? editingSubject = null;
-  MyAppState? appState = null;
 
   @override
   void dispose() {
     super.dispose();
     _textEditingController.dispose();
     _textFocusNode.dispose(); // 포커스 노드 해제
-    appState = null;
   }
 
-  Group getGroup(MyAppState appState) {
-    if (appState.getGroup() == null) {
-      appState.setGroup(0);
+  Group getGroup(FriendState friendState) {
+    if (friendState.getGroup() == null) {
+      friendState.setGroup(0);
     }
-    return appState.currentGroup!;
+    return friendState.currentGroup!;
   }
 
   @override
   Widget build(BuildContext context) {
-    appState = context.watch<MyAppState>();
+    FriendState friendState = context.watch<FriendState>();
 
     return Container(
       height: 100,
       child: ListView.builder(
-        itemCount: getGroup(appState!).members.length,
+        itemCount: getGroup(friendState).members.length,
         itemBuilder: (context, index) {
-          Friend friend = getGroup(appState!).members[index];
+          Friend friend = getGroup(friendState).members[index];
           return FriendTile(
-            appState: appState,
+            friendState: friendState,
             child: Text(
               '${friend.getName()} ${friend.isStudying ? ' 몰입 중' : ' 휴식 중'}'
             ),
@@ -57,11 +55,11 @@ class _FriendList extends State<FriendList> {
 class FriendTile extends StatelessWidget {
   const FriendTile({
     super.key,
-    required this.appState,
+    required this.friendState,
     required this.child,
   });
 
-  final MyAppState? appState;
+  final FriendState? friendState;
   final Widget child;
 
   @override

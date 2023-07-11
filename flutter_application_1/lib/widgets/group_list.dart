@@ -14,7 +14,6 @@ class _GroupList extends State<GroupList> {
   bool isEditing = false;
   FocusNode _textFocusNode = FocusNode(); // 포커스 노드 추가
   Subject? editingSubject = null;
-  MyAppState? appState = null;
 
   @override
   void initState() {
@@ -26,60 +25,32 @@ class _GroupList extends State<GroupList> {
     super.dispose();
     _textEditingController.dispose();
     _textFocusNode.dispose(); // 포커스 노드 해제
-    appState = null;
-  }
-
-  void addItem(String value) {
-    if (value == '') return;
-    setState(() {
-      appState?.subjects.add(Subject(-1, value));
-
-      isEditing = false;
-      _textEditingController.clear();
-    });
-  }
-
-  void editItem(String value) {
-    setState(() {
-      editingSubject?.setName(value);
-    });
-  }
-
-  void editDone() {
-    setState(() {
-      editingSubject?.editDone();
-      editingSubject = null;
-    });
-  }
-
-  void startEditing() {
-    setState(() {
-      isEditing = true;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    appState = context.watch<MyAppState>();
+    UserState userState = context.watch<UserState>();
+    TimerState timerState = context.watch<TimerState>();
+    FriendState friendState = context.watch<FriendState>();
 
     return Container(
       height: 70,
       child: ListView.builder(
-        itemCount: appState!.groups.length + 1,
+        itemCount: friendState.groups.length + 1,
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
           if (index == 0) {
             return GroupTile(
-              appState: appState!,
+              friendState: friendState,
               index: index,
               child: Text('친구'),
             );
-          } else if (index <= appState!.groups.length) {
+          } else if (index <= friendState.groups.length) {
             return GroupTile(
-              appState: appState!,
+              friendState: friendState,
               index: index,
               child: Text(
-                appState!.groups[index - 1].getName(),
+                friendState.groups[index - 1].getName(),
               ),
             );
           }
@@ -93,12 +64,12 @@ class _GroupList extends State<GroupList> {
 class GroupTile extends StatelessWidget {
   const GroupTile({
     super.key,
-    required this.appState,
+    required this.friendState,
     required this.child,
     required this.index,
   });
 
-  final MyAppState appState;
+  final FriendState friendState;
   final Widget child;
   final int index;
 
@@ -117,8 +88,8 @@ class GroupTile extends StatelessWidget {
               disabledForegroundColor: Colors.green,
               disabledBackgroundColor: Colors.grey[300],
             ),
-            onPressed: appState.currentGroup == appState.getGroupOfIndex(index) ? null : () {
-              appState.setGroup(index);
+            onPressed: friendState.currentGroup == friendState.getGroupOfIndex(index) ? null : () {
+              friendState.setGroup(index);
             },
             
           ),

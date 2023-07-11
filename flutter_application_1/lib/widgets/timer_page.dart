@@ -10,7 +10,6 @@ class TimerPage extends StatefulWidget {
 }
 
 class _TimerPageState extends State<TimerPage> {
-  var currentSubjectIdx = -1;
   var icon = null;
 
   bool listOpen = false;
@@ -29,23 +28,23 @@ class _TimerPageState extends State<TimerPage> {
 
   @override
   Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
-    if (appState.stopwatch.isRunning) {
+    TimerState timerState = context.watch<TimerState>();
+    if (timerState.stopwatch.isRunning) {
       icon = Icon(Icons.pause);
     } else {
       icon = Icon(Icons.play_arrow);
     }
 
     void toggle() {
-      if (appState.isOn) {
-        appState.pause();
-        appState.isOn = false;
+      if (timerState.isOn) {
+        timerState.pause();
+        timerState.isOn = false;
         setState(() {
           icon = Icon(Icons.pause);
         });
       } else {
-        appState.isOn = true;
-        appState.start();
+        timerState.isOn = true;
+        timerState.start();
         setState(() {
           icon = Icon(Icons.play_arrow);
         });
@@ -68,7 +67,7 @@ class _TimerPageState extends State<TimerPage> {
             toggle();
           },
         ),
-        TimeWidget(duration: appState.duration),
+        TimeWidget(duration: timerState.duration),
         Spacer(),
         GestureDetector(
           onVerticalDragUpdate: (DragUpdateDetails details) {
@@ -119,11 +118,11 @@ class _TimerPageState extends State<TimerPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    appState.currentSubject.getName(),
+                    timerState.currentSubject.getName(),
                     style: style,
                   ),
                   Text(
-                    appState.currentSubject.getName() == '' ? '' : '에 몰입 중',
+                    timerState.currentSubject.getName() == '' ? '' : '에 몰입 중',
                     style: TextStyle(
                       fontSize: 19,
                       color: Colors.white70,
