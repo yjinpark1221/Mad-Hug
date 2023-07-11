@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/subject.dart';
+import 'package:flutter_application_1/classes/subject.dart';
 import 'package:provider/provider.dart';
 
-import 'main.dart';
+import '../main.dart';
 
 class GroupList extends StatefulWidget {
   @override

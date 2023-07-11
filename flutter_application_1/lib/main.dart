@@ -1,16 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/friend_page.dart';
-import 'package:flutter_application_1/group.dart';
-import 'package:flutter_application_1/kakao_login.dart';
-import 'package:flutter_application_1/popup_add.dart';
-import 'package:flutter_application_1/subject.dart';
-import 'package:flutter_application_1/timer_page.dart';
-import 'package:flutter_application_1/utils.dart';
+import 'package:flutter_application_1/widgets/friend_page.dart';
+import 'package:flutter_application_1/classes/group.dart';
+import 'package:flutter_application_1/classes/kakao_login.dart';
+import 'package:flutter_application_1/widgets/popup_add.dart';
+import 'package:flutter_application_1/classes/subject.dart';
+import 'package:flutter_application_1/widgets/timer_page.dart';
+import 'package:flutter_application_1/functions/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
-import 'main_view_model.dart';
+import 'classes/main_view_model.dart';
 
 void main() {
   KakaoSdk.init(
