@@ -15,6 +15,8 @@ class FriendPage extends StatefulWidget {
   State<FriendPage> createState() => _FriendPageState();
 }
 
+FriendState? fs = null;
+
 class _FriendPageState extends State<FriendPage> {
   bool loading = false;
 
@@ -29,7 +31,7 @@ class _FriendPageState extends State<FriendPage> {
 
   @override
   Widget build(BuildContext context) {
-    FriendState friendState = context.watch<FriendState>();
+    fs = context.watch<FriendState>();
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -37,7 +39,7 @@ class _FriendPageState extends State<FriendPage> {
       child: RefreshIndicator(
         onRefresh: () async {
           loading = true;
-          await friendState.init();
+          await fs!.init();
           loading = false;
         },
         child: Column(
@@ -65,7 +67,7 @@ void enterGroup(String groupId) {
 }
 
 void makeGroup(String groupName) {
-  sendNewGroup(groupName);
+  sendNewGroup(groupName, fs!);
 }
 
 void addFriend(String friendId) {
@@ -73,6 +75,6 @@ void addFriend(String friendId) {
   if (tmp == null) {
     showToast('친구 ID를 입력하세요.');
   } else {
-    sendFriendRequest(tmp);
+    sendFriendRequest(tmp, fs!);
   }
 }

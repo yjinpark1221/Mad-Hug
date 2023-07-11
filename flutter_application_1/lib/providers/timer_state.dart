@@ -6,11 +6,10 @@ import 'package:flutter_application_1/classes/subject.dart';
 import 'package:flutter_application_1/functions/utils.dart';
 
 class TimerState extends ChangeNotifier {
-  bool isOn = false;
   Timer? timer = null;
   final stopwatch = Stopwatch();
   var duration = Duration.zero;
-  Subject currentSubject = Subject(-1, '');
+  late Subject currentSubject;
   DateTime? currentStart;
   List<Subject> subjects = [];
   Subject? editingSubject = null;
@@ -19,6 +18,7 @@ class TimerState extends ChangeNotifier {
   Future init() async {
     print('?');
     subjects = await getSubjectsList();
+    currentSubject = subjects[0];
     notifyListeners();
   }
 
@@ -30,7 +30,7 @@ class TimerState extends ChangeNotifier {
 
   void editDone() {
     // if (editingSubject == null) throw Exception('편집 중인 과목 없음');
-    editingSubject!.editDone();
+    editingSubject?.editDone();
     editingSubject = null;
     notifyListeners();
   }
@@ -48,7 +48,7 @@ class TimerState extends ChangeNotifier {
   }
 
   void start() {
-    print('start');
+    if (stopwatch.isRunning) return;
     stopwatch.start();
     currentStart = DateTime.now();
     sendStart(currentStart!, currentSubject);
@@ -59,6 +59,7 @@ class TimerState extends ChangeNotifier {
   }
 
   void pause() {
+    if (stopwatch.isRunning == false) return;
     timer?.cancel();
     sendEnd(currentStart!, DateTime.now(), currentSubject);
     stopwatch.stop();

@@ -19,9 +19,26 @@ class FriendState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setFriends(List<Friend> fl) {
+    print('친구 초기화중');
+    friends.members = fl;
+    currentGroup = friends;
+    notifyListeners();
+  }
+  
+  void setGroups(List<Group> fl) {
+    print('친구 초기화중');
+    groups = fl;
+    currentGroup = fl.last;
+    notifyListeners();
+  }
+  
   Future init() async {
-    groups = await getGroupsList();
+    if (currentGroup == null) {
+      currentGroup = friends;
+    }
     friends = Group(0, '친구', await getFriendsList());
+    groups = await getGroupsList();
     notifyListeners();
   }
 

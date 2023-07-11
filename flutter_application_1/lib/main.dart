@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/widgets/friend_page.dart';
 import 'package:flutter_application_1/widgets/popup_add.dart';
+import 'package:flutter_application_1/widgets/statistics_page.dart';
 import 'package:flutter_application_1/widgets/timer_page.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:flutter_application_1/providers/friend_state.dart';
 import 'package:flutter_application_1/providers/user_state.dart';
 import 'package:flutter_application_1/providers/timer_state.dart';
 
-void main() {
+void main() async{
+  await initializeDateFormatting();
   KakaoSdk.init(
     nativeAppKey: '097e7cd9a62149718112d7dc7ab99d3e',
     javaScriptAppKey: '00488ce796cfafa104b7f20fc289bf01',
@@ -23,7 +26,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.indigo,
       ),
       home: MultiProvider(
         // MultiProvider를 통해 변화에 대해 구독
@@ -107,7 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   List _widgetOptions = [
-    Placeholder(),
+    StatisticsPage(),
     TimerPage(),
     FriendPage(),
   ];

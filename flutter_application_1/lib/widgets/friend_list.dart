@@ -33,10 +33,16 @@ class _FriendList extends State<FriendList> {
 
     return Container(
       height: 100,
-      child: ListView.builder(
+      child: GridView.builder(
         itemCount: getGroup(friendState).members.length,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3, //1 개의 행에 보여줄 item 개수
+          childAspectRatio: 1 / 1.3, //item 의 가로 1, 세로 2 의 비율
+          mainAxisSpacing: 10, //수평 Padding
+          crossAxisSpacing: 10, //수직 Padding
+        ),
         itemBuilder: (context, index) {
-          Friend friend = getGroup(friendState).members[index];
+          Friend friend = friendState.currentGroup!.members[index];
           return FriendTile(
             friendState: friendState,
             friend: friend,
@@ -65,12 +71,26 @@ class FriendTile extends StatelessWidget {
         contentPadding: EdgeInsets.zero, // contentPadding 제거
         title: Container(
           width: double.infinity, // 버튼이 ListTile의 가로 공간을 가득 채울 수 있도록 설정
-          height: 40,
-          child: ElevatedButton(
-            child: Text(
-              '${friend.getName()} ${friend.isStudying ? ' 몰입 중' : ' 휴식 중'}',
-            ),
-            onPressed: friend.isStudying ? () {} : null,
+          height: double.infinity,
+          child: Column(
+            children: [
+              Icon(
+                friend.isStudying ? Icons.local_fire_department : Icons.coffee,
+                size: 80,
+                color: friend.isStudying
+                    ? Color.fromARGB(255, 250, 117, 99)
+                    : Color.fromARGB(255, 151, 118, 99),
+                shadows: <Shadow>[
+                  Shadow(color: const Color.fromARGB(100, 112, 112, 112), blurRadius: 15.0)
+                ],
+              ),
+              ElevatedButton(
+                onPressed: friend.isStudying ? () {} : null,
+                child: Text(
+                  '${friend.getName()} ${friend.isStudying ? ' 몰입 중' : ' 휴식 중'}',
+                ),
+              ),
+            ],
           ),
         ),
       ),

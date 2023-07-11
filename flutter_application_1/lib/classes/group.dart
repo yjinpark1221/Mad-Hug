@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Group {
   static int cnt = 0;
   int id = ++cnt;
@@ -11,11 +13,13 @@ class Group {
     return _name;
   }
 
-  factory Group.fromJson(Map<String, dynamic> json) {
-    return Group(
-      json['groupId'],
-      json['groupName'],
-      json['members'].map((dynamic item) => Friend.fromJson(item)).toList(),
+  factory Group.fromJson(Map<String, dynamic> g) {
+    print(g['members'].toString());
+    List<dynamic> members = json.decode(g['members'].toString()) as List<dynamic>;
+      return Group(
+      g['groupId'],
+      g['groupName'],
+      members.map((dynamic item) => Friend.fromJson(item)).toList(),
     );
   }
 }

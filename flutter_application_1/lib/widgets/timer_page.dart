@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/functions/toast.dart';
 import 'package:flutter_application_1/widgets/subject_simple_list.dart';
 import 'package:flutter_application_1/widgets/time_widget.dart';
 import 'package:provider/provider.dart';
@@ -9,9 +10,9 @@ class TimerPage extends StatefulWidget {
   State<TimerPage> createState() => _TimerPageState();
 }
 
-class _TimerPageState extends State<TimerPage> {
+class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver{
   var icon = null;
-
+  var keyboardheight = 0.0;
   bool listOpen = false;
 
   @override
@@ -19,6 +20,15 @@ class _TimerPageState extends State<TimerPage> {
     super.initState();
     setState(() {
       icon = Icon(Icons.play_arrow);
+    });
+  }
+
+  @override
+  void didChangeMetrics() {
+    final bottom = WidgetsBinding.instance.window.viewInsets.bottom;
+    setState(() {
+      this.keyboardheight = bottom!;
+      showToast('$keyboardheight');
     });
   }
 
@@ -32,14 +42,12 @@ class _TimerPageState extends State<TimerPage> {
     }
 
     void toggle() {
-      if (timerState.isOn) {
+      if (timerState.stopwatch.isRunning) {
         timerState.pause();
-        timerState.isOn = false;
         setState(() {
           icon = Icon(Icons.pause);
         });
       } else {
-        timerState.isOn = true;
         timerState.start();
         setState(() {
           icon = Icon(Icons.play_arrow);
@@ -49,96 +57,104 @@ class _TimerPageState extends State<TimerPage> {
 
     final theme = Theme.of(context);
     final style = theme.textTheme.headlineMedium!.copyWith(
-      color: theme.colorScheme.onSecondary,
     );
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Spacer(),
-        IconButton(
-          icon: icon,
-          iconSize: 100,
-          onPressed: () {
-            toggle();
-          },
-        ),
-        TimeWidget(duration: timerState.duration),
-        Spacer(),
-        GestureDetector(
-          onVerticalDragUpdate: (DragUpdateDetails details) {
-            if (details.delta.dy > 0) {
-              print('Swipe down');
-              if (listOpen == true) {
-                // test();
-                setState(() {
-                  listOpen = false;
-                });
+    return Container(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Spacer(),
+          IconButton(
+            icon: icon,
+            iconSize: 100,
+            onPressed: () {
+              toggle();
+            },
+          ),
+          TimeWidget(duration: timerState.duration),
+          Spacer(),
+          GestureDetector(
+            onVerticalDragUpdate: (DragUpdateDetails details) {
+              if (details.delta.dy > 0) {
+                print('Swipe down');
+                if (listOpen == true) {
+                  // test();
+                  setState(() {
+                    listOpen = false;
+                  });
+                }
+              } else if (details.delta.dy < -0) {
+                print('Swipe up');
+                if (listOpen == false) {
+                  setState(
+                    () {
+                      listOpen = true;
+                      print('openlist');
+                    },
+                  );
+                }
               }
-            } else if (details.delta.dy < -0) {
-              print('Swipe up');
-              if (listOpen == false) {
-                setState(
-                  () {
-                    listOpen = true;
-                    print('openlist');
-                  },
-                );
-              }
-            }
-          },
-          child: Container(
-            // width: 200,
-            height: 60,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                stops: [
-                  0,
-                  0.1,
-                  0.9,
-                ],
-                colors: [
-                  Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                  Theme.of(context).colorScheme.primary.withOpacity(0.8),
-                  Theme.of(context).colorScheme.primary,
-                ],
+            },
+            child: Container(
+              // width: 200,
+              height: 60,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: [
+                    0,
+                    0.5,
+                    0.9,
+                  ],
+                  colors: [
+                    Theme.of(context).colorScheme.primary,
+                    Theme.of(context).colorScheme.secondary,
+                    Theme.of(context).colorScheme.primaryContainer,
+                  ],
+                ),
+                color: Theme.of(context).colorScheme.primary,
               ),
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            child: Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    timerState.currentSubject.getName(),
-                    style: style,
-                  ),
-                  Text(
-                    timerState.currentSubject.getName() == '' ? '' : '에 몰입 중',
-                    style: TextStyle(
-                      fontSize: 19,
-                      color: Colors.white70,
+              child: Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      timerState.currentSubject.getName(),
+                      style: TextStyle(
+                        fontSize: 19,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                ],
+                    Text(
+                      timerState.currentSubject.getName() == '' ? '' : '에 몰입 중',
+                      style: TextStyle(
+                        fontSize: 19,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-        AnimatedContainer(
-          // 속도
-          duration: Duration(seconds: 1),
-          height: listOpen ? MediaQuery.of(context).size.height - 405: 0,
-          // animation 형태
-          curve: Curves.fastOutSlowIn,
-          width: double.infinity,
-          // 컨테이너의 가로 사이즈
-          color: Theme.of(context).colorScheme.primaryContainer,
-          child: SubjectSimpleList(),
-        )
-      ],
+          AnimatedContainer(
+            // 속도
+            duration: Duration(seconds: 1),
+            height: listOpen
+                ? MediaQuery.of(context).size.height -
+                    405 -
+                    keyboardheight
+                : 0,
+            // animation 형태
+            curve: Curves.fastOutSlowIn,
+            width: double.infinity,
+            // 컨테이너의 가로 사이즈
+            color: Theme.of(context).colorScheme.primaryContainer,
+            child: SubjectSimpleList(),
+          )
+        ],
+      ),
     );
   }
 }

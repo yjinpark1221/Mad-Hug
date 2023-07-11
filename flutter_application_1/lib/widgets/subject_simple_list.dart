@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/classes/subject.dart';
 import 'package:flutter_application_1/functions/toast.dart';
+import 'package:flutter_application_1/functions/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application_1/providers/timer_state.dart';
 
@@ -28,14 +29,7 @@ class _SubjectSimpleList extends State<SubjectSimpleList> {
     timerState = null;
   }
 
-  void addItem(String value) {
-    if (value == '') return;
-    if (timerState == null) return;
-    setState(() {
-      timerState?.subjects.add(Subject(0, value));
-      _textEditingController.text = '';
-    });
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +37,19 @@ class _SubjectSimpleList extends State<SubjectSimpleList> {
     final tileHeight = 55.0;
     final textFieldHeight = 45.0;
     final contentPadding =
-        EdgeInsets.symmetric(vertical: (tileHeight - textFieldHeight) / 2);
+          EdgeInsets.symmetric(vertical: (tileHeight - textFieldHeight) / 2);
+  
+  void addItem(String value) {
+    if (value == '') return;
+    if (timerState == null) return;
+    setState(() {
+      var newSubject = Subject(0, value);
+      timerState?.subjects.add(newSubject);
+      sendNewSubject(newSubject.id, newSubject.getName());
+      timerState?.isAdding = false;
+      _textEditingController.text = '';
+    });
+  }
 
     return WillPopScope(
       onWillPop: () async {
@@ -66,11 +72,11 @@ class _SubjectSimpleList extends State<SubjectSimpleList> {
                 height: tileHeight,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                     colors: [
-                      Theme.of(context).colorScheme.primary.withOpacity(0),
-                      Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.2),
+                      Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.0),
                     ],
                   ),
                 ),
@@ -83,7 +89,7 @@ class _SubjectSimpleList extends State<SubjectSimpleList> {
                   },
                   leading: Icon(Icons.add),
                   title: TextFormField(
-                    style: TextStyle(color: Colors.black),
+                    style: TextStyle(color: Colors.white),
                     cursorColor: Colors.grey, // 커서 색상을 검은색으로 설정
                     cursorWidth: 2.0,
                     controller: _textEditingController,
@@ -92,7 +98,7 @@ class _SubjectSimpleList extends State<SubjectSimpleList> {
                       isCollapsed: true,
                       contentPadding: contentPadding,
                       focusedBorder: InputBorder.none,
-                      focusColor: Colors.black,
+                      focusColor: Colors.white,
                     ),
                     enabled: timerState!.isAdding &&
                         timerState!.editingSubject == null,
@@ -116,8 +122,8 @@ class _SubjectSimpleList extends State<SubjectSimpleList> {
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
-                    Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                    Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    Theme.of(context).colorScheme.onPrimary.withOpacity(0.0),
+                    Theme.of(context).colorScheme.onPrimary.withOpacity(0.2),
                   ],
                 ),
               ),
@@ -192,9 +198,9 @@ class _SubjectTileState extends State<SubjectTile> {
       child: ListTile(
         leading: Icon(Icons.play_arrow),
         title: TextFormField(
-          style: TextStyle(color: Colors.black),
+          style: TextStyle(color: Colors.white),
           controller: textEditingController,
-          cursorColor: Colors.black, // 커서 색상을 검은색으로 설정
+          cursorColor: Colors.white, // 커서 색상을 검은색으로 설정
           cursorWidth: 1.0,
           decoration: InputDecoration(
             isDense: true,
