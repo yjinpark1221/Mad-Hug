@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/classes/group.dart';
-import 'package:flutter_application_1/classes/subject.dart';
 import 'package:flutter_application_1/providers/friend_state.dart';
 import 'package:provider/provider.dart';
 

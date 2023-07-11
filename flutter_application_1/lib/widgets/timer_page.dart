@@ -27,7 +27,7 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver{
   void didChangeMetrics() {
     final bottom = WidgetsBinding.instance.window.viewInsets.bottom;
     setState(() {
-      this.keyboardheight = bottom!;
+      this.keyboardheight = bottom;
       showToast('$keyboardheight');
     });
   }
@@ -54,10 +54,6 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver{
         });
       }
     }
-
-    final theme = Theme.of(context);
-    final style = theme.textTheme.headlineMedium!.copyWith(
-    );
 
     return Container(
       child: Column(

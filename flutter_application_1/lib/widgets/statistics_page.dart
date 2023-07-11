@@ -1,13 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/providers/friend_state.dart';
-import 'package:flutter_application_1/widgets/friend_list.dart';
-import 'package:flutter_application_1/widgets/group_list.dart';
-import 'package:flutter_application_1/functions/toast.dart';
-import 'package:flutter_application_1/functions/utils.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:intl/date_symbol_data_local.dart';
 
 class StatisticsPage extends StatefulWidget {
   const StatisticsPage({
