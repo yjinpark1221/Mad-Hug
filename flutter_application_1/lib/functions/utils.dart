@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:flutter_application_1/group.dart';
-import 'package:flutter_application_1/kakao_login.dart';
-import 'package:flutter_application_1/subject.dart';
-import 'package:flutter_application_1/toast.dart';
+import 'package:flutter_application_1/classes/group.dart';
+import 'package:flutter_application_1/classes/kakao_login.dart';
+import 'package:flutter_application_1/classes/subject.dart';
+import 'package:flutter_application_1/functions/toast.dart';
 import 'package:http/http.dart' as http;
 
 final url = 'http://172.10.5.102:443/api';
@@ -21,8 +21,8 @@ Future<List<Subject>> getSubjectsList() async {
   if (user == null) throw Exception('no user info');
   print('[REQUEST] get subject');
   return [];
-  var response = await http.get(Uri.parse('$url/subject?uid=${user?.id}, ${user?.kakaoAccount?.profile?.nickname}'));
-
+  var response = await http.get(Uri.parse('$url/subject?uid=${user?.id}&name=${user?.kakaoAccount?.profile?.nickname}'));
+  print('response ${response.statusCode}');
   if (response.statusCode == 200) {
     print('[RESPONSE: get subject]');
     print(json.decode(response.body));
@@ -30,6 +30,14 @@ Future<List<Subject>> getSubjectsList() async {
     List<Subject> allSubject =
         body.map((dynamic item) => Subject.fromJson(item)).toList();
     showToast('과목 정보를 불러왔습니다.');
+    return allSubject;
+  } else if (response.statusCode == 200) {
+    print('[RESPONSE: get subject]');
+    print(json.decode(response.body));
+    List<dynamic> body = json.decode(response.body);
+    List<Subject> allSubject =
+        body.map((dynamic item) => Subject.fromJson(item)).toList();
+    showToast('회원가입 완료, 과목 정보를 불러왔습니다.');
     return allSubject;
   } else {
     print('Response status: ${response.statusCode}');

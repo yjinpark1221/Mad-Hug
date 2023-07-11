@@ -1,4 +1,4 @@
-import "package:flutter_application_1/social_login.dart";
+import 'package:flutter_application_1/classes/social_login.dart';
 import "package:kakao_flutter_sdk/kakao_flutter_sdk.dart";
 
 User? user = null;

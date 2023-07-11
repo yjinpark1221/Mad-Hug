@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/main.dart';
-import 'package:flutter_application_1/subject_simple_list.dart';
-import 'package:flutter_application_1/time_widget.dart';
+import 'package:flutter_application_1/widgets/subject_simple_list.dart';
+import 'package:flutter_application_1/widgets/time_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_application_1/providers/timer_state.dart';
 
 class TimerPage extends StatefulWidget {
   @override
@@ -21,10 +21,6 @@ class _TimerPageState extends State<TimerPage> {
       icon = Icon(Icons.play_arrow);
     });
   }
-
-  void openList() {}
-
-  void closeList() {}
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +74,6 @@ class _TimerPageState extends State<TimerPage> {
                 setState(() {
                   listOpen = false;
                 });
-                closeList();
               }
             } else if (details.delta.dy < -0) {
               print('Swipe up');
@@ -89,7 +84,6 @@ class _TimerPageState extends State<TimerPage> {
                     print('openlist');
                   },
                 );
-                openList();
               }
             }
           },
@@ -106,8 +100,8 @@ class _TimerPageState extends State<TimerPage> {
                   0.9,
                 ],
                 colors: [
-                  Theme.of(context).colorScheme.primary.withOpacity(0),
-                  Theme.of(context).colorScheme.primary,
+                  Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                  Theme.of(context).colorScheme.primary.withOpacity(0.8),
                   Theme.of(context).colorScheme.primary,
                 ],
               ),
@@ -136,11 +130,11 @@ class _TimerPageState extends State<TimerPage> {
         AnimatedContainer(
           // 속도
           duration: Duration(seconds: 1),
+          height: listOpen ? MediaQuery.of(context).size.height - 405: 0,
           // animation 형태
           curve: Curves.fastOutSlowIn,
           width: double.infinity,
           // 컨테이너의 가로 사이즈
-          height: listOpen ? 350 : 0,
           color: Theme.of(context).colorScheme.primaryContainer,
           child: SubjectSimpleList(),
         )

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/friend_list.dart';
-import 'package:flutter_application_1/group.dart';
-import 'package:flutter_application_1/group_list.dart';
-import 'package:flutter_application_1/main.dart';
-import 'package:flutter_application_1/toast.dart';
-import 'package:flutter_application_1/utils.dart';
+import 'package:flutter_application_1/providers/friend_state.dart';
+import 'package:flutter_application_1/widgets/friend_list.dart';
+import 'package:flutter_application_1/widgets/group_list.dart';
+import 'package:flutter_application_1/functions/toast.dart';
+import 'package:flutter_application_1/functions/utils.dart';
 import 'package:provider/provider.dart';
 
 class FriendPage extends StatefulWidget {
@@ -31,19 +30,26 @@ class _FriendPageState extends State<FriendPage> {
   @override
   Widget build(BuildContext context) {
     FriendState friendState = context.watch<FriendState>();
-    return RefreshIndicator(
-      onRefresh: () async {
-        loading = true;
-        await friendState.init();
-        loading = false;
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
       },
-      child: Column(
-        children: loading ? [ CircularProgressIndicator() ] : [
-          GroupList(),
-          Expanded(
-            child: FriendList(),
-          )
-        ],
+      child: RefreshIndicator(
+        onRefresh: () async {
+          loading = true;
+          await friendState.init();
+          loading = false;
+        },
+        child: Column(
+          children: loading
+              ? [CircularProgressIndicator()]
+              : [
+                  GroupList(),
+                  Expanded(
+                    child: FriendList(),
+                  )
+                ],
+        ),
       ),
     );
   }

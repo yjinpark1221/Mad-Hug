@@ -1,4 +1,4 @@
-import 'package:flutter_application_1/utils.dart';
+import 'package:flutter_application_1/functions/utils.dart';
 
 class Subject {
   static int cnt = 0;

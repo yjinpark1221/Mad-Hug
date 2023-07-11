@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/classes/subject.dart';
 import 'package:provider/provider.dart';
-
-import '../main.dart';
+import 'package:flutter_application_1/providers/friend_state.dart';
 
 class GroupList extends StatefulWidget {
   @override
@@ -29,8 +28,6 @@ class _GroupList extends State<GroupList> {
 
   @override
   Widget build(BuildContext context) {
-    UserState userState = context.watch<UserState>();
-    TimerState timerState = context.watch<TimerState>();
     FriendState friendState = context.watch<FriendState>();
 
     return Container(
@@ -78,20 +75,28 @@ class GroupTile extends StatelessWidget {
     return Container(
       width: 100,
       child: ListTile(
-        contentPadding: EdgeInsets.zero, // contentPadding 제거
+        contentPadding: EdgeInsets.all(2), // contentPadding 제거
         title: Container(
           width: double.infinity, // 버튼이 ListTile의 가로 공간을 가득 채울 수 있도록 설정
           height: 60,
           child: ElevatedButton(
             child: child,
             style: ElevatedButton.styleFrom(
-              disabledForegroundColor: Colors.green,
-              disabledBackgroundColor: Colors.grey[300],
+              padding:
+                  EdgeInsets.symmetric(horizontal: 20, vertical: 10), // 패딩 설정
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30), // 모서리 반경 설정
+              ),
+
+              // disabledForegroundColor: Colors.green,
+              // disabledBackgroundColor: Colors.grey[300],
             ),
-            onPressed: friendState.currentGroup == friendState.getGroupOfIndex(index) ? null : () {
-              friendState.setGroup(index);
-            },
-            
+            onPressed: friendState.currentGroup?.id ==
+                    friendState.getGroupOfIndex(index).id
+                ? null
+                : () {
+                    friendState.setGroup(index);
+                  },
           ),
         ),
       ),

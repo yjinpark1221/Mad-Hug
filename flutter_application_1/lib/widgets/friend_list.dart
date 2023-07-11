@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/group.dart';
-import 'package:flutter_application_1/subject.dart';
+import 'package:flutter_application_1/classes/group.dart';
+import 'package:flutter_application_1/classes/subject.dart';
+import 'package:flutter_application_1/providers/friend_state.dart';
 import 'package:provider/provider.dart';
-
-import 'main.dart';
 
 class FriendList extends StatefulWidget {
   @override
@@ -12,9 +11,7 @@ class FriendList extends StatefulWidget {
 
 class _FriendList extends State<FriendList> {
   TextEditingController _textEditingController = TextEditingController();
-  bool isEditing = false;
   FocusNode _textFocusNode = FocusNode(); // 포커스 노드 추가
-  Subject? editingSubject = null;
 
   @override
   void dispose() {
@@ -42,9 +39,7 @@ class _FriendList extends State<FriendList> {
           Friend friend = getGroup(friendState).members[index];
           return FriendTile(
             friendState: friendState,
-            child: Text(
-              '${friend.getName()} ${friend.isStudying ? ' 몰입 중' : ' 휴식 중'}'
-            ),
+            friend: friend,
           );
         },
       ),
@@ -56,11 +51,11 @@ class FriendTile extends StatelessWidget {
   const FriendTile({
     super.key,
     required this.friendState,
-    required this.child,
+    required this.friend,
   });
 
   final FriendState? friendState;
-  final Widget child;
+  final Friend friend;
 
   @override
   Widget build(BuildContext context) {
@@ -72,8 +67,10 @@ class FriendTile extends StatelessWidget {
           width: double.infinity, // 버튼이 ListTile의 가로 공간을 가득 채울 수 있도록 설정
           height: 40,
           child: ElevatedButton(
-            child: child,
-            onPressed: () {},
+            child: Text(
+              '${friend.getName()} ${friend.isStudying ? ' 몰입 중' : ' 휴식 중'}',
+            ),
+            onPressed: friend.isStudying ? () {} : null,
           ),
         ),
       ),

@@ -1,16 +1,12 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/widgets/friend_page.dart';
-import 'package:flutter_application_1/classes/group.dart';
-import 'package:flutter_application_1/classes/kakao_login.dart';
 import 'package:flutter_application_1/widgets/popup_add.dart';
-import 'package:flutter_application_1/classes/subject.dart';
 import 'package:flutter_application_1/widgets/timer_page.dart';
-import 'package:flutter_application_1/functions/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
-import 'classes/main_view_model.dart';
+import 'package:flutter_application_1/providers/friend_state.dart';
+import 'package:flutter_application_1/providers/user_state.dart';
+import 'package:flutter_application_1/providers/timer_state.dart';
 
 void main() {
   KakaoSdk.init(
@@ -44,95 +40,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class UserState extends ChangeNotifier {
-  final viewModel = MainViewModel(KakaoLogin());
-  Future init() async {
-    await viewModel.login();
-  }
-}
-
-class TimerState extends ChangeNotifier {
-  bool isOn = false;
-  Timer? timer = null;
-  final stopwatch = Stopwatch();
-  var duration = Duration.zero;
-  Subject currentSubject = Subject(-1, '');
-  DateTime? currentStart;
-  List<Subject> subjects = [];
-
-  Future init() async {
-    print('?');
-    subjects = await getSubjectsList();
-    notifyListeners();
-  }
-
-  void setSubject(Subject subject) {
-    if (stopwatch.isRunning && currentSubject == subject) {
-      return;
-    }
-    if (stopwatch.isRunning) {
-      pause();
-    }
-    start();
-    currentSubject = subject;
-    notifyListeners();
-  }
-
-  void start() {
-    print('start');
-    stopwatch.start();
-    currentStart = DateTime.now();
-    sendStart(currentStart!, currentSubject);
-    timer = Timer.periodic(Duration(milliseconds: 1000), (timer) {
-      duration = stopwatch.elapsed;
-      notifyListeners();
-    });
-  }
-
-  void pause() {
-    timer?.cancel();
-    sendEnd(currentStart!, DateTime.now(), currentSubject);
-    stopwatch.stop();
-  }
-}
-
-class FriendState extends ChangeNotifier {
-  List<Group> groups = [];
-  Group friends = Group(0, '친구', []);
-  Group? currentGroup = null;
-
-  void setGroup(int index) {
-    if (index == 0) {
-      currentGroup = friends;
-    } else if (index > 0) {
-      currentGroup = groups[index - 1];
-    } else {
-      currentGroup = null;
-    }
-    notifyListeners();
-  }
-
-  Future init() async {
-    groups = await getGroupsList();
-    friends = Group(0, '친구', await getFriendsList());
-    notifyListeners();
-  }
-
-  Group getGroupOfIndex(int index) {
-    if (index == 0) {
-      return friends;
-    }
-    return groups[index - 1];
-  }
-
-  Group? getGroup() {
-    if (currentGroup == null) {
-      currentGroup = friends;
-    }
-    return currentGroup;
-  }
-}
-
 class MyHomePage extends StatefulWidget {
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -145,14 +52,18 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     UserState userState = context.watch<UserState>();
-    TimerState timerState = context.watch<TimerState>();
     FriendState friendState = context.watch<FriendState>();
+    TimerState timerState = context.watch<TimerState>();
     return userState.viewModel.getUser() == null
         ? LoginPage()
         : GestureDetector(
             onTap: () {
-              print('tap');
+              print('unfocus');
               FocusManager.instance.primaryFocus?.unfocus();
+              setState(() {
+                timerState.isAdding = false;
+                timerState.editDone();
+              });
             },
             child: Scaffold(
               appBar: AppBar(

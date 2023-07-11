@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/dialogs.dart';
-import 'package:flutter_application_1/friend_page.dart';
+import 'package:flutter_application_1/widgets/dialogs.dart';
+import 'package:flutter_application_1/widgets/friend_page.dart';
 import 'package:flutter_application_1/main.dart';
 
 class PopupAdd extends StatelessWidget {
