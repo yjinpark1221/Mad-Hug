@@ -29,27 +29,25 @@ class _SubjectSimpleList extends State<SubjectSimpleList> {
     timerState = null;
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     timerState = context.watch<TimerState>();
     final tileHeight = 55.0;
     final textFieldHeight = 45.0;
     final contentPadding =
-          EdgeInsets.symmetric(vertical: (tileHeight - textFieldHeight) / 2);
-  
-  void addItem(String value) {
-    if (value == '') return;
-    if (timerState == null) return;
-    setState(() {
-      var newSubject = Subject(0, value);
-      timerState?.subjects.add(newSubject);
-      sendNewSubject(newSubject.id, newSubject.getName());
-      timerState?.isAdding = false;
-      _textEditingController.text = '';
-    });
-  }
+        EdgeInsets.symmetric(vertical: (tileHeight - textFieldHeight) / 2);
+
+    void addItem(String value) {
+      if (value == '') return;
+      if (timerState == null) return;
+      setState(() {
+        var newSubject = Subject(-1, value);
+        timerState?.subjects.add(newSubject);
+        sendNewSubject(newSubject.id, newSubject.getName());
+        timerState?.isAdding = false;
+        _textEditingController.text = '';
+      });
+    }
 
     return WillPopScope(
       onWillPop: () async {
@@ -75,8 +73,14 @@ class _SubjectSimpleList extends State<SubjectSimpleList> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.2),
-                      Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.0),
+                      Theme.of(context)
+                          .colorScheme
+                          .onPrimaryContainer
+                          .withOpacity(0.2),
+                      Theme.of(context)
+                          .colorScheme
+                          .secondaryContainer
+                          .withOpacity(0.0),
                     ],
                   ),
                 ),
@@ -220,21 +224,39 @@ class _SubjectTileState extends State<SubjectTile> {
           print(widget.timerState.currentSubject.getName());
         },
         trailing: IconButton(
-          icon: Icon(Icons.edit),
-          onPressed: widget.timerState.editingSubject != null
-              ? () {
-                  showToast('편집중인 과목이 있습니다.');
-                }
-              : () {
-                  showToast('편집을 시작합니다.');
-                  setState(() {
-                    widget.timerState.edit(widget.subject);
-                    widget.subject.edit();
-                    _textFocusNode.requestFocus();
-                  });
-                },
+              icon: Icon(Icons.edit),
+              onPressed: widget.timerState.editingSubject != null
+                  ? () {
+                      showToast('편집중인 과목이 있습니다.');
+                    }
+                  : () {
+                      showToast('편집을 시작합니다.');
+                      setState(() {
+                        widget.timerState.edit(widget.subject);
+                        widget.subject.edit();
+                        _textFocusNode.requestFocus();
+                      });
+                    },
+            ),
+            // IconButton(
+            //   icon: Icon(Icons.delete),
+            //   onPressed: () {
+            //     if (widget.timerState.currentSubject == widget.subject && widget.timerState.stopwatch.isRunning) {
+            //       showToast('현재 몰입중인 과목은 삭제할 수 없습니다.');
+            //       return;
+            //     }
+            //     showToast('과목을 삭제합니다.');
+            //     setState(() {
+            //       if (widget.timerState.editingSubject == widget.subject) {
+            //         widget.timerState.editingSubject = null;
+            //       }
+            //       sendDeleteSubject(widget.subject.id, widget.timerState);
+            //     });
+            //   },
+            // ),
+          // ],
         ),
-      ),
-    );
+      );
+    // );
   }
 }

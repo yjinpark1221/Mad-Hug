@@ -34,7 +34,10 @@ class TimerState extends ChangeNotifier {
     editingSubject = null;
     notifyListeners();
   }
-
+  void setSubjectList(List<Subject> subjectList) {
+    subjects = subjectList;
+    notifyListeners();
+  }
   void setSubject(Subject subject) {
     if (stopwatch.isRunning && currentSubject == subject) {
       return;
@@ -42,8 +45,8 @@ class TimerState extends ChangeNotifier {
     if (stopwatch.isRunning) {
       pause();
     }
-    start();
     currentSubject = subject;
+    start();
     notifyListeners();
   }
 

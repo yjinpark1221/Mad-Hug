@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/classes/group.dart';
+import 'package:flutter_application_1/functions/utils.dart';
+import 'package:flutter_application_1/providers/friend_state.dart';
+import 'package:provider/provider.dart';
 
 
 class DialogUI extends StatelessWidget {
-  const DialogUI({Key? key, this.Cnt, this.Name}) : super(key: key);
-  final Cnt; // 부모 위젯으로부터 전달받은 변수 등록
-  final Name; // 부모 위젯으로부터 전달받은 변수 등록
- 
+  const DialogUI({Key? key, this.title, this.msg, this.friendState})  : super(key: key);
+  final title; // 부모 위젯으로부터 전달받은 변수 등록
+  final msg; // 부모 위젯으로부터 전달받은 변수 등록
+  final FriendState? friendState;
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -15,7 +19,7 @@ class DialogUI extends StatelessWidget {
       //Dialog Main Title
       title: Column(
         children: <Widget>[
-          Text("팝업 메시지"),
+          Text(title),
         ],
       ),
       //
@@ -24,17 +28,24 @@ class DialogUI extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            "카운트 횟수 ${Cnt}, 이름 : ${Name}",
+            msg,
           ),
         ],
       ),
       actions: <Widget>[
         ElevatedButton(
-          onPressed: () => Navigator.pop(context, 'Cancel'),
+          onPressed: () {
+            return Navigator.pop(context, 'Cancel');
+          },
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: () => Navigator.pop(context, 'OK'),
+          onPressed: () {
+            if (title == '그룹 탈퇴') {
+              sendDeleteGroup(friendState!.currentGroup!.id, friendState!);
+            }
+            return Navigator.pop(context, 'OK');
+          },
           child: const Text('OK'),
         ),
       ],

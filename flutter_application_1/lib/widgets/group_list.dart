@@ -31,6 +31,7 @@ class _GroupList extends State<GroupList> {
     FriendState friendState = context.watch<FriendState>();
 
     return Container(
+      // width: MediaQuery.of(context).size.width,
       height: 70,
       child: ListView.builder(
         itemCount: friendState.groups.length + 1,

@@ -10,7 +10,7 @@ class Subject {
     if (_name == '') {
       _name = '자습';
     }
-    if (id > 0) {
+    if (id >= 0) {
       cnt = id + 1;
     }
     else {

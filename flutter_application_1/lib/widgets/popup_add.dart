@@ -1,5 +1,8 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/classes/group.dart';
+import 'package:flutter_application_1/classes/kakao_login.dart';
+import 'package:flutter_application_1/providers/friend_state.dart';
 import 'package:flutter_application_1/widgets/dialogs.dart';
 import 'package:flutter_application_1/widgets/friend_page.dart';
 import 'package:flutter_application_1/main.dart';
@@ -41,6 +44,53 @@ class PopupAdd extends StatelessWidget {
           PopupMenuItem(
             value: AddType.addFriend,
             child: Text('친구 추가'),
+          ),
+        ];
+      },
+    );
+  }
+}
+
+enum GroupOption { exitGroup, groupView, idView }
+
+class PopupDelete extends StatelessWidget {
+  final Group group;
+  const PopupDelete({
+    super.key,required this.group,required this.friendState
+  });
+  final FriendState friendState;
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<GroupOption>(
+      onSelected: (GroupOption result) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            if (result == GroupOption.exitGroup) {
+              return DialogUI(title: '그룹 탈퇴', msg: '그룹을 탈퇴하시겠습니까?', friendState: friendState);
+            }
+            else if (result == GroupOption.groupView) {
+              return DialogUI(title: '그룹 아이디 조회', msg: '${group.id}');
+            } 
+            else {
+              return DialogUI(title: '내 아이디 조회', msg: '${user!.kakaoAccount?.profile?.nickname}의 아이디 : ${user?.id}');
+            }
+          },
+        );
+      },
+      itemBuilder: (BuildContext buildContext) {
+        return [
+          PopupMenuItem(
+            value: GroupOption.exitGroup,
+            child: Text('그룹 탈퇴'),
+          ),
+          PopupMenuItem(
+            value: GroupOption.groupView,
+            child: Text('그룹 아이디 조회'),
+          ),
+          PopupMenuItem(
+            value: GroupOption.idView,
+            child: Text('내 아이디 조회'),
           ),
         ];
       },

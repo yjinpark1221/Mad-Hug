@@ -4,6 +4,7 @@ import 'package:flutter_application_1/widgets/friend_list.dart';
 import 'package:flutter_application_1/widgets/group_list.dart';
 import 'package:flutter_application_1/functions/toast.dart';
 import 'package:flutter_application_1/functions/utils.dart';
+import 'package:flutter_application_1/widgets/popup_add.dart';
 import 'package:provider/provider.dart';
 
 class FriendPage extends StatefulWidget {
@@ -46,7 +47,20 @@ class _FriendPageState extends State<FriendPage> {
           children: loading
               ? [CircularProgressIndicator()]
               : [
-                  GroupList(),
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: GroupList(),
+                        ),
+                        fs?.currentGroup!.id != 0
+                            ? PopupDelete(group: fs!.currentGroup!, friendState: fs!)
+                            : SizedBox(),
+                      ],
+                    ),
+                  ),
                   Expanded(
                     child: FriendList(),
                   )
@@ -62,7 +76,7 @@ void enterGroup(String groupId) {
   if (tmp == null) {
     showToast('그룹 ID를 입력하세요.');
   } else {
-    sendGroupRequest(tmp);
+    sendGroupRequest(tmp, fs!);
   }
 }
 

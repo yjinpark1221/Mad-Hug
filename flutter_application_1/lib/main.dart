@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/widgets/calendar_example.dart';
 import 'package:flutter_application_1/widgets/friend_page.dart';
 import 'package:flutter_application_1/widgets/popup_add.dart';
-import 'package:flutter_application_1/widgets/statistics_page.dart';
 import 'package:flutter_application_1/widgets/timer_page.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
@@ -10,7 +10,7 @@ import 'package:flutter_application_1/providers/friend_state.dart';
 import 'package:flutter_application_1/providers/user_state.dart';
 import 'package:flutter_application_1/providers/timer_state.dart';
 
-void main() async{
+void main() async {
   await initializeDateFormatting();
   KakaoSdk.init(
     nativeAppKey: '097e7cd9a62149718112d7dc7ab99d3e',
@@ -36,6 +36,8 @@ class MyApp extends StatelessWidget {
               create: (BuildContext context) => TimerState()),
           ChangeNotifierProvider(
               create: (BuildContext context) => FriendState()),
+          ChangeNotifierProvider(
+              create: (BuildContext context) => RecordState()),
         ],
         child: MyHomePage(),
       ),
@@ -57,6 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
     UserState userState = context.watch<UserState>();
     FriendState friendState = context.watch<FriendState>();
     TimerState timerState = context.watch<TimerState>();
+    RecordState recordState = context.watch<RecordState>();
     return userState.viewModel.getUser() == null
         ? LoginPage()
         : GestureDetector(
@@ -95,12 +98,20 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               //List item index로 Body 변경
               body: Center(
-                child: _widgetOptions.elementAt(_selectedIndex),
+                child: _selectedIndex == 0
+                    ? TableEventsExample(
+                        // recordState: recordState,
+                      )
+                    : _widgetOptions.elementAt(_selectedIndex),
               ),
-              floatingActionButton: _selectedIndex == 2
+              floatingActionButton: (_selectedIndex == 2 || _selectedIndex == 0)
                   ? FloatingActionButton(
                       onPressed: () {
-                        friendState.init();
+                        if (_selectedIndex == 0) {
+                          recordState.init();
+                        } else {
+                          friendState.init();
+                        }
                       },
                       child: Icon(Icons.refresh),
                     )
@@ -110,7 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   List _widgetOptions = [
-    StatisticsPage(),
+    Placeholder(),
     TimerPage(),
     FriendPage(),
   ];
@@ -128,6 +139,7 @@ class _LoginPageState extends State<LoginPage> {
     UserState userState = context.watch<UserState>();
     TimerState timerState = context.watch<TimerState>();
     FriendState friendState = context.watch<FriendState>();
+    RecordState recordState = context.watch<RecordState>();
     return Center(
       child: loading
           ? CircularProgressIndicator()
@@ -139,6 +151,7 @@ class _LoginPageState extends State<LoginPage> {
                 await userState.init();
                 await timerState.init();
                 await friendState.init();
+                await recordState.init();
               },
               child: const Text('카카오'),
             ),

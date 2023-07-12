@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/classes/group.dart';
+import 'package:flutter_application_1/functions/toast.dart';
+import 'package:flutter_application_1/functions/utils.dart';
 import 'package:flutter_application_1/providers/friend_state.dart';
 import 'package:provider/provider.dart';
 
@@ -73,22 +75,35 @@ class FriendTile extends StatelessWidget {
           height: double.infinity,
           child: Column(
             children: [
-              Icon(
-                friend.isStudying ? Icons.local_fire_department : Icons.coffee,
-                size: 80,
-                color: friend.isStudying
-                    ? Color.fromARGB(255, 250, 117, 99)
-                    : Color.fromARGB(255, 151, 118, 99),
-                shadows: <Shadow>[
-                  Shadow(color: const Color.fromARGB(100, 112, 112, 112), blurRadius: 15.0)
-                ],
-              ),
-              ElevatedButton(
-                onPressed: friend.isStudying ? () {} : null,
-                child: Text(
-                  '${friend.getName()} ${friend.isStudying ? ' 몰입 중' : ' 휴식 중'}',
+              InkWell(
+                  child: Icon(
+                    friend.isStudying
+                        ? Icons.local_fire_department
+                        : Icons.coffee,
+                    size: 80,
+                    color: friend.isStudying
+                        ? Color.fromARGB(255, 250, 117, 99)
+                        : Color.fromARGB(255, 151, 118, 99),
+                    shadows: <Shadow>[
+                      Shadow(
+                          color: const Color.fromARGB(100, 112, 112, 112),
+                          blurRadius: 15.0)
+                    ],
+                  ),
+                  onLongPress: () {
+                    showToast('친구를 삭제합니다.');
+                    sendDeleteFriend(friend.id, friendState!);
+                  }),
+              AnimatedContainer(
+                duration: Duration(seconds: 1),
+                child: ElevatedButton(
+                  onPressed: friend.isStudying ? () {} : null,
+                  child: Text(
+                    '${friend.getName()} ${friend.isStudying ? ' 몰입 중' : ' 휴식 중'}',
+                  ),
                 ),
               ),
+              // if (friend.mood != Mood.none) Placeholder() else SizedBox(),
             ],
           ),
         ),

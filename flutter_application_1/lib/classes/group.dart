@@ -24,10 +24,13 @@ class Group {
   }
 }
 
+enum Mood { none, happy, sad, tired, angry, confused, excited }
+
 class Friend {
-  Friend(this.id, this.name, this.isStudying);
+  Friend(this.id, this.name, this.isStudying, this.mood);
   int id;
   String name;
+  Mood mood;
   bool isStudying;
   String getName() {
     return name;
@@ -37,6 +40,7 @@ class Friend {
       json['userId'],
       json['userName'],
       json['studying'],
+      Mood.values[json['mood']],
     );
   }
 }

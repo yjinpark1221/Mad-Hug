@@ -10,16 +10,35 @@ class TimerPage extends StatefulWidget {
   State<TimerPage> createState() => _TimerPageState();
 }
 
-class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver{
+class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver {
   var icon = null;
   var keyboardheight = 0.0;
   bool listOpen = false;
-
+  Icon playIcon = Icon(
+    Icons.play_arrow,
+    shadows: <Shadow>[
+      Shadow(
+        color: Color.fromARGB(60, 92, 92, 92),
+        blurRadius: 30.0,
+      )
+    ],
+  );
+  Icon pauseIcon = Icon(
+    Icons.pause,
+    shadows: <Shadow>[
+      Shadow(
+        color: Color.fromARGB(111, 255, 255, 255),
+        blurRadius: 30.0,
+      ),
+    ],
+  );
   @override
   void initState() {
     super.initState();
     setState(() {
-      icon = Icon(Icons.play_arrow);
+      icon = Icon(
+        Icons.play_arrow,
+      );
     });
   }
 
@@ -36,26 +55,34 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver{
   Widget build(BuildContext context) {
     TimerState timerState = context.watch<TimerState>();
     if (timerState.stopwatch.isRunning) {
-      icon = Icon(Icons.pause);
+      icon = pauseIcon;
     } else {
-      icon = Icon(Icons.play_arrow);
+      icon = playIcon;
     }
 
     void toggle() {
       if (timerState.stopwatch.isRunning) {
         timerState.pause();
         setState(() {
-          icon = Icon(Icons.pause);
+          icon = pauseIcon;
         });
       } else {
         timerState.start();
         setState(() {
-          icon = Icon(Icons.play_arrow);
+          icon = playIcon;
         });
       }
     }
 
-    return Container(
+    return AnimatedContainer(
+      duration: Duration(seconds: 1),
+      curve: Curves.fastOutSlowIn,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16.0),
+        color: timerState.stopwatch.isRunning
+            ? Color.fromARGB(255, 59, 67, 116)
+            : Colors.white,
+      ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -63,11 +90,19 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver{
           IconButton(
             icon: icon,
             iconSize: 100,
+            color: timerState.stopwatch.isRunning
+                ? Colors.white
+                : Color.fromARGB(255, 25, 29, 51),
             onPressed: () {
               toggle();
             },
           ),
-          TimeWidget(duration: timerState.duration),
+          TimeWidget(
+            duration: timerState.duration,
+            color: timerState.stopwatch.isRunning
+                ? Colors.white
+                : Color.fromARGB(255, 32, 35, 63),
+          ),
           Spacer(),
           GestureDetector(
             onVerticalDragUpdate: (DragUpdateDetails details) {
@@ -138,9 +173,7 @@ class _TimerPageState extends State<TimerPage> with WidgetsBindingObserver{
             // 속도
             duration: Duration(seconds: 1),
             height: listOpen
-                ? MediaQuery.of(context).size.height -
-                    405 -
-                    keyboardheight
+                ? MediaQuery.of(context).size.height - 405 - keyboardheight
                 : 0,
             // animation 형태
             curve: Curves.fastOutSlowIn,
